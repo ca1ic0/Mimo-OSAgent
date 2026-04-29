@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>命令分析报告 - 青耕鸟</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container report-container">
+        <!-- 报告头部 -->
+        <div class="report-header">
+            <h1 id="reportTitle">命令分析报告</h1>
+            <div class="report-meta">
+                <span id="reportId" class="report-id"></span>
+                <span id="reportTime" class="report-time"></span>
+            </div>
+        </div>
+
+        <!-- 加载状态 -->
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p id="loadingText">正在分析中...</p>
+        </div>
+
+        <!-- 错误信息 -->
+        <div id="errorArea" class="error-area hidden">
+            <p id="errorMsg"></p>
+            <a href="/" class="back-link" id="backLink">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5m7-7l-7 7 7 7"/></svg>
+                返回重试
+            </a>
+        </div>
+
+        <!-- 报告内容 -->
+        <div id="reportContent" class="report-content hidden">
+            <!-- 语音转录 -->
+            <section class="report-section">
+                <h2 id="transcriptTitle">
+                    <svg class="section-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
+                    语音转录
+                </h2>
+                <p id="transcript" class="transcript-text"></p>
+            </section>
+
+            <!-- 需求描述 -->
+            <section class="report-section">
+                <h2 id="descriptionTitle">
+                    <svg class="section-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+                    需求分析
+                </h2>
+                <p id="description"></p>
+            </section>
+
+            <!-- 总体风险 -->
+            <section class="report-section">
+                <h2 id="riskTitle">
+                    <svg class="section-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>
+                    总体风险评级
+                </h2>
+                <div id="overallRisk" class="risk-badge risk-low">低风险</div>
+            </section>
+
+            <!-- TTS 播放 -->
+            <section class="report-section">
+                <h2 id="ttsTitle">
+                    <svg class="section-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>
+                    语音说明
+                </h2>
+                <button id="ttsPlayBtn" class="tts-btn">
+                    <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+                        <path d="M8 5v14l11-7z"/>
+                    </svg>
+                    <span id="ttsBtnText">播放语音说明</span>
+                </button>
+                <audio id="ttsAudio" class="hidden"></audio>
+                <div id="ttsBars" class="audio-bars hidden">
+                    <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
+                </div>
+            </section>
+
+            <!-- 命令列表 -->
+            <section class="report-section">
+                <h2 id="commandsTitle">
+                    <svg class="section-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/></svg>
+                    命令列表
+                </h2>
+                <div class="command-list-header">
+                    <span></span>
+                    <button class="copy-all-btn" id="copyAllBtn" onclick="copyAllCommands()">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                        复制全部
+                    </button>
+                </div>
+                <div id="commandList" class="command-list"></div>
+            </section>
+
+            <!-- 任务状态 -->
+            <section class="report-section">
+                <h2 id="taskTitle">
+                    <svg class="section-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                    任务状态
+                </h2>
+                <div class="task-buttons">
+                    <button id="successBtn" class="task-btn task-success" onclick="taskComplete(true)">
+                        任务完成
+                    </button>
+                    <button id="failBtn" class="task-btn task-fail" onclick="taskComplete(false)">
+                        任务失败
+                    </button>
+                </div>
+                <div id="taskResult" class="task-result hidden"></div>
+            </section>
+
+            <!-- 返回按钮 -->
+            <a href="/" class="back-link" id="backHome">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5m7-7l-7 7 7 7"/></svg>
+                返回首页
+            </a>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <!-- Scroll to top -->
+    <button class="scroll-top-btn" id="scrollTopBtn" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5m-7 7l7-7 7 7"/></svg>
+    </button>
+
+    <script>
+        const reportId = new URLSearchParams(window.location.search).get("id");
+        let reportLanguage = "zh";
+        let allCommands = [];
+        const toastEl = document.getElementById("toast");
+        const scrollTopBtn = document.getElementById("scrollTopBtn");
+
+        // Toast
+        let toastTimer = null;
+        function showToast(msg, duration = 2000) {
+            toastEl.textContent = msg;
+            toastEl.classList.add("show");
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => toastEl.classList.remove("show"), duration);
+        }
+
+        // Scroll to top visibility
+        window.addEventListener("scroll", () => {
+            scrollTopBtn.classList.toggle("visible", window.scrollY > 300);
+        });
+
+        if (!reportId) {
+            showError("缺少报告 ID");
+        } else {
+            loadReport(reportId);
+        }
+
+        async function loadReport(id) {
+            try {
+                const resp = await fetch(`/api/report/${id}`);
+                if (resp.ok) {
+                    const report = await resp.json();
+                    renderReport(report);
+                } else if (resp.status === 404) {
+                    pollForReport(id);
+                } else {
+                    const err = await resp.json();
+                    throw new Error(err.error || "加载失败");
+                }
+            } catch (err) {
+                showError(err.message);
+            }
+        }
+
+        async function pollForReport(id, attempts = 0) {
+            const maxAttempts = 30;
+            if (attempts >= maxAttempts) {
+                showError("报告生成超时，请返回重试");
+                return;
+            }
+
+            const isEn = reportLanguage === "en";
+            const dots = ".".repeat((attempts % 3) + 1);
+            document.getElementById("loadingText").textContent =
+                isEn ? `Processing${dots}` : `正在分析中${dots}`;
+
+            await new Promise(r => setTimeout(r, 2000));
+
+            try {
+                const resp = await fetch(`/api/report/${id}`);
+                if (resp.ok) {
+                    const report = await resp.json();
+                    renderReport(report);
+                } else {
+                    pollForReport(id, attempts + 1);
+                }
+            } catch {
+                pollForReport(id, attempts + 1);
+            }
+        }
+
+        function updateUILanguage(lang) {
+            reportLanguage = lang;
+            const isEn = lang === "en";
+
+            document.title = isEn ? "Command Analysis Report - Qinggenniao" : "命令分析报告 - 青耕鸟";
+            document.getElementById("reportTitle").textContent = isEn ? "Command Analysis Report" : "命令分析报告";
+            document.getElementById("loadingText").textContent = isEn ? "Analyzing..." : "正在分析中...";
+            document.getElementById("backLink").lastElementChild.textContent = isEn ? "Back to retry" : "返回重试";
+            document.getElementById("transcriptTitle").lastChild.textContent = isEn ? " Voice Transcript" : " 语音转录";
+            document.getElementById("descriptionTitle").lastChild.textContent = isEn ? " Requirement Analysis" : " 需求分析";
+            document.getElementById("riskTitle").lastChild.textContent = isEn ? " Overall Risk Rating" : " 总体风险评级";
+            document.getElementById("ttsTitle").lastChild.textContent = isEn ? " Voice Explanation" : " 语音说明";
+            document.getElementById("ttsBtnText").textContent = isEn ? "Play Voice Explanation" : "播放语音说明";
+            document.getElementById("commandsTitle").lastChild.textContent = isEn ? " Command List" : " 命令列表";
+            document.getElementById("copyAllBtn").lastChild.textContent = isEn ? " Copy All" : " 复制全部";
+            document.getElementById("taskTitle").lastChild.textContent = isEn ? " Task Status" : " 任务状态";
+            document.getElementById("successBtn").textContent = isEn ? "Task Complete" : "任务完成";
+            document.getElementById("failBtn").textContent = isEn ? "Task Failed" : "任务失败";
+            document.getElementById("backHome").lastElementChild.textContent = isEn ? "Back to Home" : "返回首页";
+        }
+
+        function renderReport(r) {
+            document.getElementById("loading").classList.add("hidden");
+            document.getElementById("reportContent").classList.remove("hidden");
+
+            updateUILanguage(r.language || "zh");
+
+            document.getElementById("reportId").textContent = r.id;
+            document.getElementById("reportTime").textContent = r.timestamp;
+            document.getElementById("transcript").textContent = r.transcript;
+            document.getElementById("description").textContent = r.description;
+
+            // 总体风险
+            const riskEl = document.getElementById("overallRisk");
+            riskEl.innerHTML = `${riskIcon(r.overall_risk)} ${riskLabel(r.overall_risk)}`;
+            riskEl.className = `risk-badge risk-${r.overall_risk}`;
+
+            // 命令列表
+            allCommands = r.commands || [];
+            const listEl = document.getElementById("commandList");
+            const stepLabel = reportLanguage === "en" ? "Step" : "步骤";
+            if (allCommands.length > 0) {
+                listEl.innerHTML = allCommands.map(cmd => `
+                    <div class="command-card">
+                        <div class="command-header">
+                            <span class="command-step">${stepLabel} ${cmd.step}</span>
+                            <span class="risk-badge risk-${cmd.risk}">${riskIcon(cmd.risk)} ${riskLabel(cmd.risk)}</span>
+                        </div>
+                        <div class="command-code-wrap">
+                            <code class="command-code">${escapeHtml(cmd.command)}</code>
+                            <button class="copy-cmd-btn" onclick="copyCommand(this, '${escapeAttr(cmd.command)}')" title="复制">
+                                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                            </button>
+                        </div>
+                        <p class="command-desc">${escapeHtml(cmd.description)}</p>
+                        <p class="command-risk-reason">${escapeHtml(cmd.risk_reason)}</p>
+                    </div>
+                `).join("");
+            } else {
+                listEl.innerHTML = `<p>${reportLanguage === "en" ? "No commands generated" : "未生成命令列表"}</p>`;
+            }
+
+            // TTS（使用预合成的音频，无需等待）
+            setupTTS(r.tts_text, r.tts_audio, r.tts_content_type);
+        }
+
+        function riskIcon(risk) {
+            const icons = {
+                low: '<svg class="risk-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>',
+                medium: '<svg class="risk-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>',
+                high: '<svg class="risk-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>',
+                critical: '<svg class="risk-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>',
+            };
+            return icons[risk] || "";
+        }
+
+        function escapeAttr(text) {
+            return text.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+        }
+
+        function copyCommand(btn, text) {
+            navigator.clipboard.writeText(text).then(() => {
+                const isEn = reportLanguage === "en";
+                showToast(isEn ? "Copied!" : "已复制!");
+            });
+        }
+
+        function copyAllCommands() {
+            if (allCommands.length === 0) return;
+            const text = allCommands.map(c => c.command).join("\n");
+            navigator.clipboard.writeText(text).then(() => {
+                const isEn = reportLanguage === "en";
+                showToast(isEn ? "All commands copied!" : "已复制全部命令!");
+            });
+        }
+
+        function setupTTS(text, cachedAudio, cachedContentType) {
+            const btn = document.getElementById("ttsPlayBtn");
+            const btnText = document.getElementById("ttsBtnText");
+            const audio = document.getElementById("ttsAudio");
+            const bars = document.getElementById("ttsBars");
+
+            const isEn = reportLanguage === "en";
+            const playLabel = isEn ? "Play Voice Explanation" : "播放语音说明";
+            const synthesizing = isEn ? "Synthesizing..." : "合成中...";
+            const playing = isEn ? "Playing..." : "播放中...";
+            const clickToPlay = isEn ? "Click to Play" : "点击播放";
+            const failed = isEn ? "Play Failed" : "播放失败";
+
+            // 如果有预合成的音频，直接使用
+            let ttsData = cachedAudio ? { audio: cachedAudio, content_type: cachedContentType || "audio/wav" } : null;
+
+            function showPlaying() {
+                btnText.textContent = playing;
+                btn.disabled = true;
+                bars.classList.remove("hidden");
+                bars.classList.add("playing");
+            }
+
+            function showIdle() {
+                btnText.textContent = playLabel;
+                btn.disabled = false;
+                bars.classList.remove("playing");
+                bars.classList.add("hidden");
+            }
+
+            // 自动播放（有缓存音频时立即可用）
+            async function autoPlay() {
+                if (!ttsData) return;
+                audio.src = `data:${ttsData.content_type};base64,${ttsData.audio}`;
+                try {
+                    showPlaying();
+                    await audio.play();
+                    audio.onended = showIdle;
+                } catch {
+                    // 浏览器阻止自动播放，显示点击提示
+                    btnText.textContent = clickToPlay;
+                    btn.disabled = false;
+                }
+            }
+
+            btn.onclick = async () => {
+                if (ttsData) {
+                    audio.src = `data:${ttsData.content_type};base64,${ttsData.audio}`;
+                    showPlaying();
+                    try { await audio.play(); } catch {}
+                    audio.onended = showIdle;
+                } else {
+                    await synthesizeAndPlay();
+                }
+            };
+
+            async function synthesizeAndPlay() {
+                btn.disabled = true;
+                btnText.textContent = synthesizing;
+
+                try {
+                    const resp = await fetch("/api/tts", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ text, language: reportLanguage }),
+                    });
+
+                    if (!resp.ok) throw new Error("TTS failed");
+
+                    ttsData = await resp.json();
+                    audio.src = `data:${ttsData.content_type};base64,${ttsData.audio}`;
+
+                    try {
+                        showPlaying();
+                        await audio.play();
+                        audio.onended = showIdle;
+                    } catch {
+                        btnText.textContent = clickToPlay;
+                        btn.disabled = false;
+                    }
+                } catch (err) {
+                    btnText.textContent = failed;
+                    btn.disabled = false;
+                }
+            }
+
+            // 有缓存音频 → 直接播放；否则走合成流程
+            if (ttsData) {
+                autoPlay();
+            } else {
+                synthesizeAndPlay();
+            }
+        }
+
+        function riskLabel(risk) {
+            const isEn = reportLanguage === "en";
+            if (isEn) {
+                const labels = { low: "Low Risk", medium: "Medium Risk", high: "High Risk", critical: "Critical Risk" };
+                return labels[risk] || risk;
+            }
+            const labels = { low: "低风险", medium: "中风险", high: "高风险", critical: "严重风险" };
+            return labels[risk] || risk;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement("div");
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function showError(msg) {
+            document.getElementById("loading").classList.add("hidden");
+            document.getElementById("errorArea").classList.remove("hidden");
+            document.getElementById("errorMsg").textContent = msg;
+        }
+
+        async function taskComplete(success) {
+            const btn = success ? document.getElementById("successBtn") : document.getElementById("failBtn");
+            const resultEl = document.getElementById("taskResult");
+            const isEn = reportLanguage === "en";
+
+            const processingText = isEn ? "Processing..." : "处理中...";
+            const clickToPlay = isEn ? "Click to Play" : "点击播放";
+            const requestFailed = isEn ? "Request failed: " : "请求失败: ";
+
+            btn.disabled = true;
+            btn.textContent = processingText;
+            document.getElementById("successBtn").disabled = true;
+            document.getElementById("failBtn").disabled = true;
+
+            try {
+                const resp = await fetch(`/api/report/${reportId}/complete`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ success, language: reportLanguage }),
+                });
+
+                const data = await resp.json();
+                resultEl.classList.remove("hidden");
+                resultEl.textContent = data.text;
+
+                if (data.audio) {
+                    const audio = new Audio(`data:${data.content_type};base64,${data.audio}`);
+                    try {
+                        await audio.play();
+                    } catch {
+                        resultEl.innerHTML = `${escapeHtml(data.text)}<br><button onclick="this.previousElementSibling&&this.remove();new Audio('data:${data.content_type};base64,${data.audio}').play()">${clickToPlay}</button>`;
+                    }
+                }
+            } catch (err) {
+                resultEl.classList.remove("hidden");
+                resultEl.textContent = requestFailed + err.message;
+            }
+        }
+    </script>
+</body>
+</html>

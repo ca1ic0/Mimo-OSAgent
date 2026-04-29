@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>青耕鸟 运维助手</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <!-- Mobile sidebar toggle -->
+    <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle workspace">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 12h18M3 6h18M3 18h18"/>
+        </svg>
+    </button>
+
+    <div class="app-layout">
+        <!-- 侧边栏：工作台 -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+                    <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/>
+                </svg>
+                <span>工作台</span>
+                <span class="connection-dot" id="connectionDot" title="SSE connection"></span>
+                <button class="clear-session-btn" id="clearSessionBtn" title="清除上下文">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                        <path d="M3 6h18M8 6V4a1 1 0 011-1h6a1 1 0 011 1v2m2 0v14a2 2 0 01-2 2H8a2 2 0 01-2-2V6h12z"/>
+                    </svg>
+                </button>
+            </div>
+            <div id="workspace" class="workspace">
+                <div class="workspace-empty" id="workspaceEmpty">
+                    <svg viewBox="0 0 24 24" fill="currentColor" width="32" height="32" opacity="0.3">
+                        <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
+                    </svg>
+                    <span>暂无报告</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- 主内容区 -->
+        <main class="main-content">
+            <div class="main-inner">
+                <div class="logo-row">
+                    <svg class="logo-icon" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+                        <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+                    </svg>
+                    <h1>青耕鸟</h1>
+                </div>
+                <p class="subtitle">AI 运维语音助手 &mdash; 按住麦克风说出你的需求</p>
+
+                <!-- 录音按钮 (核心交互) -->
+                <div class="button-area">
+                    <button id="recordBtn" class="record-btn">
+                        <svg class="mic-icon" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+                            <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+                        </svg>
+                        <span class="btn-text">按住说话</span>
+                    </button>
+                </div>
+
+                <!-- 状态指示器 -->
+                <div id="status" class="status idle">
+                    <span class="status-dot"></span>
+                    <span class="status-text">就绪</span>
+                </div>
+
+                <!-- 波形可视化 -->
+                <div class="visualizer-wrap" id="visualizerWrap">
+                    <canvas id="visualizer" class="visualizer"></canvas>
+                </div>
+
+                <!-- 分隔线 -->
+                <div class="input-divider">或使用文字输入</div>
+
+                <!-- 文字输入备选 -->
+                <div class="text-input-area" id="textInputArea">
+                    <input type="text" class="text-input" id="textInput" placeholder="输入你的运维指令..." />
+                    <button class="text-send-btn" id="textSendBtn">发送</button>
+                </div>
+
+                <!-- 示例提示 -->
+                <div class="example-chips" id="exampleChips">
+                    <button class="example-chip" data-text="安装 btop 系统监控工具">安装 btop</button>
+                    <button class="example-chip" data-text="查看磁盘使用情况">查看磁盘使用</button>
+                    <button class="example-chip" data-text="检查系统负载">检查系统负载</button>
+                    <button class="example-chip" data-text="查看 Docker 容器状态">Docker 状态</button>
+                </div>
+
+                <div class="main-footer">
+                    <span>青耕鸟 v1.0</span>
+                    <span class="footer-dot"></span>
+                    <span>Powered by MiMo</span>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Toast notification -->
+    <div class="toast" id="toast"></div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
